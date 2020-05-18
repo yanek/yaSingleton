@@ -1,3 +1,5 @@
+> :warning: This repository is a fork of https://github.com/jedybg/yaSingleton and is modified to fit my projects' very specific needs and style. If you are interested in using this asset, I cannot recommend enough that you go and look for the "original" version, maintained by the author, @jedybg, as it is probably more suited for public use.
+
 # yaSingleton
 
 Yet Another Singleton library for [Unity](http://www.unity3d.com/) and part of the [Elarion Framework](https://github.com/jedybg/Elarion). It provides Singletons based on ScriptableObjects instead of the more conventionally used MonoBehaviours.

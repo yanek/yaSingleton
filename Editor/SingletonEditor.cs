@@ -2,70 +2,83 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using yaSingleton.Utility;
 
-namespace yaSingleton.Editor {
-    /// <summary>
-    /// Fallback Singleton Inspector - validates the singleton location. Extend this class if you want the validation in your singletons.
-    /// Note: The editor targets ScriptableObjects due BaseSingleton being abstract (no custom inspectors for abstract types).
-    /// </summary>
-    [CustomEditor(typeof(BaseSingleton), true, isFallback = true)]
-    public class SingletonEditor : UnityEditor.Editor {
-        protected bool isSingletonEditor;
+namespace NK.yaSingleton.Editor
+{
+	/// <summary>
+	///     Fallback Singleton Inspector - validates the singleton location. Extend this class if you want the validation in
+	///     your singletons.
+	///     Note: The editor targets ScriptableObjects due BaseSingleton being abstract (no custom inspectors for abstract
+	///     types).
+	/// </summary>
+	[CustomEditor(typeof(BaseSingleton), true, isFallback = true)]
+	public class SingletonEditor : UnityEditor.Editor
+	{
+		protected bool               isSingletonEditor;
+		protected ScriptableObject[] duplicateSingletons;
 
-        /// <summary>
-        /// Disable in inherited editors to draw the validation at any point of your code.
-        /// </summary>
-        protected bool autoDrawSingletonValidation = true;
+		/// <summary>
+		///     Disable in inherited editors to draw the validation at any point of your code.
+		/// </summary>
+		protected bool autoDrawSingletonValidation = true;
 
-        protected ScriptableObject[] duplicateSingletons = null;
+		protected bool hasDuplicates => duplicateSingletons != null && duplicateSingletons.Length > 1;
 
-        protected bool HasDuplicates {
-            get { return duplicateSingletons != null && duplicateSingletons.Length > 1; }
-        }
+		protected virtual void OnEnable()
+		{
+			isSingletonEditor = target && target.GetType().IsSubclassOf(typeof(BaseSingleton));
 
-        protected virtual void OnEnable() {
-            isSingletonEditor = target && target.GetType().IsSubclassOf(typeof(BaseSingleton));
+			if (!isSingletonEditor) {
+				return;
+			}
 
-            if(!isSingletonEditor) {
-                return;
-            }
+			duplicateSingletons = GetAllScriptableObjects(target.GetType());
+		}
 
-            duplicateSingletons = GetAllScriptableObjects(target.GetType());
-        }
+		public override void OnInspectorGUI()
+		{
+			base.OnInspectorGUI();
 
-        public override void OnInspectorGUI() {
-            base.OnInspectorGUI();
+			if (autoDrawSingletonValidation) {
+				DrawSingletonValidation();
+			}
+		}
 
-            if(autoDrawSingletonValidation) {
-                DrawSingletonValidation();
-            }
-        }
+		protected void DrawSingletonValidation()
+		{
+			if (!isSingletonEditor) {
+				return;
+			}
 
-        protected void DrawSingletonValidation() {
-            if(!isSingletonEditor) {
-                return;
-            }
+			if (!hasDuplicates) {
+				return;
+			}
 
-            if(HasDuplicates) {
-                EditorGUILayout.HelpBox(
-                    "There are duplicate " + target.GetType().Name +
-                    " (Singleton) instances. This can lead to unexpected results.",
-                    MessageType.Warning, true);
-                EditorGUILayout.LabelField("Duplicate " + target.GetType().Name + " Singletons:");
-                GUI.enabled = false;
-                for(var i = 0; i < duplicateSingletons.Length; ++i) {
-                    var duplicateSingleton = duplicateSingletons[i];
-                    EditorGUILayout.ObjectField(duplicateSingleton.name, duplicateSingleton, target.GetType(), false);
-                }
-                GUI.enabled = true;
-            }
-        }
+			EditorGUILayout.HelpBox(
+				"There are duplicate " + target.GetType().Name +
+				" (Singleton) instances. This can lead to unexpected results.",
+				MessageType.Warning, true);
+			EditorGUILayout.LabelField("Duplicate " + target.GetType().Name + " Singletons:");
+			GUI.enabled = false;
+			foreach (ScriptableObject duplicateSingleton in duplicateSingletons) {
+				EditorGUILayout.ObjectField(
+					duplicateSingleton.name,
+					duplicateSingleton,
+					target.GetType(),
+					false
+				);
+			}
 
-        public static ScriptableObject[] GetAllScriptableObjects(Type scriptableObjectType) {
-            string[] assets = AssetDatabase.FindAssets("t:" + scriptableObjectType.Name);
+			GUI.enabled = true;
+		}
 
-            return assets.Select(id => AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(id))).ToArray();
-        }
-    }
+		public static ScriptableObject[] GetAllScriptableObjects(Type scriptableObjectType)
+		{
+			var assets = AssetDatabase.FindAssets("t:" + scriptableObjectType.Name);
+
+			return assets
+				.Select(id => AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(id)))
+				.ToArray();
+		}
+	}
 }

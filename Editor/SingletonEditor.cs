@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ namespace NK.yaSingleton.Editor
 	///     types).
 	/// </summary>
 	[CustomEditor(typeof(BaseSingleton), true, isFallback = true)]
-	public class SingletonEditor : UnityEditor.Editor
+	public class SingletonEditor : OdinEditor
 	{
 		protected bool               isSingletonEditor;
 		protected ScriptableObject[] duplicateSingletons;
@@ -24,8 +25,9 @@ namespace NK.yaSingleton.Editor
 
 		protected bool hasDuplicates => duplicateSingletons != null && duplicateSingletons.Length > 1;
 
-		protected virtual void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			isSingletonEditor = target && target.GetType().IsSubclassOf(typeof(BaseSingleton));
 
 			if (!isSingletonEditor) {

@@ -1,20 +1,22 @@
 ﻿using System.Collections.Generic;
 using NK.yaSingleton.Helpers;
+using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
 namespace NK.yaSingleton.Editor
 {
 	[CustomEditor(typeof(SingletonUpdater), true)]
-	public class SingletonUpdaterEditor : UnityEditor.Editor
+	public class SingletonUpdaterEditor : OdinEditor
 	{
 		private Dictionary<int, UnityEditor.Editor> m_Editors;
 		private Dictionary<int, bool>               m_Foldouts;
 
 		public static GUIStyle boldLabel { get; } = new GUIStyle("BoldLabel");
 
-		public void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			m_Editors = new Dictionary<int, UnityEditor.Editor>();
 			m_Foldouts = new Dictionary<int, bool>();
 		}
